@@ -1,7 +1,7 @@
 {
 	"pluginmetadataversion" : 2,
 	"name": "YARA Scan",
-	"type": ["core", "ui", "helper"],
+	"type": ["core", "binaryview"],
 	"api": ["python3"],
 	"description": "YARA signatures",
 	"longdescription": "Scan your binary with YARA signatures",
