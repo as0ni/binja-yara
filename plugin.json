@@ -11,9 +11,9 @@
 	},
 	"platforms" : ["Darwin", "Linux", "Windows"],
 	"installinstructions" : {
-		"Darwin" : "Install the following pip packages: yara-python",
-		"Linux" : "Install the following pip packages: yara-python",
-		"Windows" : "Install the following pip packages: yara-python"
+		"Darwin" : "```bash\npip3 install yara-python\n```",
+		"Linux" : "```bash\npip3 install yara-python\n```",
+		"Windows" : "```bash\npip3 install yara-python\n```"
 	},
 	"dependencies": {
 		"pip": ["yara-python"]

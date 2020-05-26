@@ -14,10 +14,11 @@ def get_markdown_result(matches):
 	for m in matches:
 		rule = m['rule']
 		func = 'unknown'
-		# TODO handle function formatting
-		# FIXME something is wrong with code formatting
-		#s = " ".join(["[{} - {}]({})".format(s[1], s[2], s[3]) for s in m['strings']])
-		s = "s"
+		if 'func' in m:
+			func = m['func']
+		
+		# 'strings': [(81L, '$a', 'abc'), (141L, '$b', 'def')]
+		s = " ".join(['["{}"](binaryninja://?expr=0x{:x})'.format(s[2].decode('utf-8'), s[0]) for s in m['strings']])
 		md_text += entry_fmt.format(rule, func, s)
 	return md_text
 
@@ -54,7 +55,7 @@ def plugin_search_file(bv):
 		show_message_box("Error", "Check logs for details", icon=MessageBoxIcon.ErrorIcon)
 
 	if len(matches) > 0:
-		show_markdown_report("YARA", get_markdown_result(matches))
+		bv.show_markdown_report("YARA", get_markdown_result(matches))
 	else:
 		log_info("[YARA] No matches")
 
@@ -63,4 +64,4 @@ def plugin_search_functions(bv):
 	# TODO
 
 PluginCommand.register("[YARA] Scan file with yara rule...", "Scan file with yara rule", plugin_search_file)
-PluginCommand.register('[YARA] Scan functions with yara rule...', "Scan all functions with yara rules (might be slower)", plugin_search_functions)
+# PluginCommand.register('[YARA] Scan functions with yara rule...', "Scan all functions with yara rules (might be slower)", plugin_search_functions)

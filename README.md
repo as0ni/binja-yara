@@ -12,15 +12,21 @@ Scan your binary with YARA signatures
 
 ### Darwin
 
-Install the following pip packages: yara-python
+```bash
+pip3 install yara-python
+```
 
 ### Linux
 
-Install the following pip packages: yara-python
+```bash
+pip3 install yara-python
+```
 
 ### Windows
 
-Install the following pip packages: yara-python
+```bash
+pip3 install yara-python
+```
 
 ## Minimum Version
 
