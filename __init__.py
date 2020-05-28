@@ -6,16 +6,16 @@ def get_yara_rule_path():
 
 def get_markdown_result(matches):
 	entry_fmt = "| {} | {} | {} |\n"
-	md_text = """ # YARA - Scan results
+	md_text = """# YARA - Scan results
 
 | Rule Name | Function | Strings offsets |
 |-----------|----------|-----------------|
 """
 	for m in matches:
 		rule = m['rule']
-		func = 'unknown'
-		if 'func' in m:
-			func = m['func']
+		func = '-'
+		if 'funcs' in m and len(m['funcs']) > 0:
+			func = " ".join(['[{:name}](binaryninja://?expr={:name})'.format(name=f.name) for f in m['funcs']])
 		
 		# 'strings': [(81L, '$a', 'abc'), (141L, '$b', 'def')]
 		s = " ".join(['["{}"](binaryninja://?expr=0x{:x})'.format(s[2].decode('utf-8'), s[0]) for s in m['strings']])
@@ -37,7 +37,12 @@ def plugin_search_file(bv):
 			}
 		"""
 		if data['matches']:
+			funcs = []
+			for addr, _, _ in data['strings']:
+				funcs += bv.get_functions_containing(addr)
+			data['funcs'] = funcs
 			matches.append(data)
+
 		yara.CALLBACK_CONTINUE
 
 	yara_path = get_yara_rule_path()
@@ -61,7 +66,7 @@ def plugin_search_file(bv):
 
 def plugin_search_functions(bv):
 	show_message_box("Not implemented", "This feature is not implemented yet")
-	# TODO
+	 # TODO implement Background task maybe?
 
 PluginCommand.register("[YARA] Scan file with yara rule...", "Scan file with yara rule", plugin_search_file)
 # PluginCommand.register('[YARA] Scan functions with yara rule...', "Scan all functions with yara rules (might be slower)", plugin_search_functions)
