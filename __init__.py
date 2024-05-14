@@ -1,27 +1,24 @@
 from binaryninja import *
 import yara
+import pefile
 
 def get_yara_rule_path():
 	return get_open_filename_input("Open YARA rule", "YARA rules (*.yar *.yara)")
 
-def get_markdown_result(matches):
-	entry_fmt = "| {} | {} | {} |\n"
-	md_text = """# YARA - Scan results
+def get_markdown_result(matches, bv):
+	entry_fmt = "| {} | {} |\n"
+	md_text = """ # YARA - Scan results
 
-| Rule Name | Function | Strings offsets |
-|-----------|----------|-----------------|
+| Rule Name |   Matches   |
+|-----------|-------------|
 """
 	for m in matches:
 		rule = m['rule']
-		func = '-'
-		if 'funcs' in m and len(m['funcs']) > 0:
-			func = " ".join(['[{:name}](binaryninja://?expr={:name})'.format(name=f.name) for f in m['funcs']])
-		
-		# 'strings': [(81L, '$a', 'abc'), (141L, '$b', 'def')]
-		s = " ".join(['["{}"](binaryninja://?expr=0x{:x})'.format(s[2].decode('utf-8'), s[0]) for s in m['strings']])
-		md_text += entry_fmt.format(rule, func, s)
+		# Updated 1) for YARA 4.2.3 and 2)to show bytes or strings depending upon hit 3) link to location in code
+		s = "  ".join(['["{}"](binaryninja://?expr=0x{:x})'.format(instance.matched_data.decode('ascii') if all(32 <= b < 127 for b in instance.matched_data) else ' '.join(format(byte, '02X') for byte in instance.matched_data), bv.get_address_for_data_offset(instance.offset)) for string in m['strings'] for instance in string.instances])
+		md_text += entry_fmt.format(rule, s)
 	return md_text
-
+	
 def plugin_search_file(bv):
 	matches = []
 	
@@ -37,12 +34,7 @@ def plugin_search_file(bv):
 			}
 		"""
 		if data['matches']:
-			funcs = []
-			for addr, _, _ in data['strings']:
-				funcs += bv.get_functions_containing(addr)
-			data['funcs'] = funcs
 			matches.append(data)
-
 		yara.CALLBACK_CONTINUE
 
 	yara_path = get_yara_rule_path()
@@ -52,7 +44,7 @@ def plugin_search_file(bv):
 		return
 
 	try:
-		rules = yara.compile(filepath=yara_path.decode('utf-8'))
+		rules = yara.compile(filepath=yara_path)
 		rules.match(bv.file.original_filename, callback=yara_callback)
 
 	except Exception as e:
@@ -60,13 +52,13 @@ def plugin_search_file(bv):
 		show_message_box("Error", "Check logs for details", icon=MessageBoxIcon.ErrorIcon)
 
 	if len(matches) > 0:
-		bv.show_markdown_report("YARA", get_markdown_result(matches))
+		bv.show_markdown_report("YARA", get_markdown_result(matches, bv))
 	else:
 		log_info("[YARA] No matches")
 
 def plugin_search_functions(bv):
 	show_message_box("Not implemented", "This feature is not implemented yet")
-	 # TODO implement Background task maybe?
+	# TODO
 
 PluginCommand.register("[YARA] Scan file with yara rule...", "Scan file with yara rule", plugin_search_file)
 # PluginCommand.register('[YARA] Scan functions with yara rule...', "Scan all functions with yara rules (might be slower)", plugin_search_functions)
