@@ -1,6 +1,5 @@
 from binaryninja import *
 import yara
-import pefile
 
 def get_yara_rule_path():
 	return get_open_filename_input("Open YARA rule", "YARA rules (*.yar *.yara)")
